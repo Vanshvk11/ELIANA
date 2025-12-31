@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Eliana | 2026</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;400;600;800&family=Indie+Flower&display=swap');
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #050505; /* Deep black for contrast */
+            font-family: 'Montserrat', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            /* Glassmorphism background */
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            transition: all 1s ease;
+        }
+
+        h1.name {
+            font-family: 'Dancing Script', cursive;
+            font-size: 4rem;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            padding-bottom: 10px;
+            animation: glow 3s infinite alternate;
+        }
+
+        .text-container {
+            font-size: 1.2rem;
+            min-height: 60px;
+            margin: 20px 0;
+            color: #ddd;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2rem;
+            background-color: #fff;
+            animation: blink 0.8s infinite;
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            border: none;
+            padding: 12px 30px;
+            color: white;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s forwards;
+            animation-delay: 4s; /* Wait for typing */
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05) translateY(0);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 2026 New Year Styles (Hidden initially) */
+        .new-year-content {
+            display: none;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 1s ease;
+        }
+
+        .year-title {
+            font-size: 5rem;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 0 10px #d4af37, 0 0 20px #d4af37, 0 0 40px #d4af37;
+            margin: 0;
+            letter-spacing: 5px;
+        }
+
+        .ny-message {
+            font-size: 1.5rem;
+            color: #f8f9fa;
+            margin-top: 10px;
+            display: none; /* Hidden until 0 */
+            animation: fadeUp 1s forwards;
+        }
+
+        /* Countdown Styles */
+        #countdown-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .time-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            min-width: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .time-val {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ff9a9e;
+        }
+
+        .time-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+            color: #aaa;
+        }
+
+        /* Diary/Letter Section */
+        #letter-view {
+            display: none;
+            text-align: left;
+            /* Real Notebook Paper Look */
+            background-color: #fffef0;
+            background-image: 
+                /* Red vertical margin */
+                linear-gradient(90deg, transparent 39px, #ff8da1 40px, transparent 41px), 
+                /* Blue horizontal lines */
+                repeating-linear-gradient(transparent, transparent 29px, #94c0cc 30px);
+            background-size: 100% 100%, 100% 30px;
+            
+            color: #2c2c2c;
+            /* Padding adjusted to align text with lines */
+            padding: 35px 30px 40px 50px; 
+            width: 100%;
+            max-width: 500px;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            transform: rotate(-1deg);
+            margin: 0 auto;
+            animation: unfold 1s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        }
+
+        /* Decorative "Washi Tape" at the top */
+        #letter-view::after {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-1deg);
+            width: 110px;
+            height: 25px;
+            background-color: #ffcc80; /* Base color */
+            /* Striped pattern for the tape */
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.4) 10px, rgba(255,255,255,0.4) 20px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            opacity: 0.95;
+        }
+
+        /* Remove old simple margin line */
+        #letter-view::before {
+            display: none;
+        }
+
+        .diary-text {
+            font-family: 'Indie Flower', cursive; /* Handwriting font */
+            font-size: 1.35rem;
+            line-height: 30px; /* Must match the background line height */
+            margin-top: 0;
+            color: #1a1a1a;
+        }
+        
+        .diary-date {
+            font-family: 'Indie Flower', cursive;
+            font-size: 1rem;
+            color: #ff6b6b;
+            text-align: right;
+            margin-bottom: 2px;
+            padding-bottom: 0;
+        }
+
+        .signature {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2rem;
+            margin-top: 30px;
+            text-align: right;
+            color: #2c3e50;
+        }
+
+        /* Animations */
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes glow { from { filter: drop-shadow(0 0 2px #fff); } to { filter: drop-shadow(0 0 10px #ff9a9e); } }
+        @keyframes unfold { 
+            from { transform: rotate(-5deg) scale(0.8); opacity: 0; } 
+            to { transform: rotate(-1deg) scale(1); opacity: 1; } 
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            h1.name { font-size: 3rem; }
+            .year-title { font-size: 3.5rem; }
+            #countdown-container { gap: 8px; }
+            .time-box { min-width: 50px; padding: 8px; }
+            .time-val { font-size: 1.5rem; }
+            #letter-view { padding: 25px; }
+            #letter-view::before { left: 25px; }
+            .diary-text { margin-left: 10px; font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="content-wrapper" id="card">
+        
+        <!-- Part 1: Apology -->
+        <div id="apology-section">
+            <h1 class="name">Eliana</h1>
+            <div class="text-container">
+                <span id="typed-text"></span><span class="cursor"></span>
+            </div>
+            <button class="action-btn" onclick="startNewYear()">Let's Start Fresh</button>
+        </div>
+
+        <!-- Part 2: 2026 Celebration -->
+        <div class="new-year-content" id="ny-section">
+            <h1 class="year-title">2026</h1>
+            
+            <div id="countdown-container">
+                <div class="time-box">
+                    <span class="time-val" id="hours">00</span>
+                    <span class="time-label">Hrs</span>
+                </div>
+                <div class="time-box">
+                    <span class="time-val" id="minutes">00</span>
+                    <span class="time-label">Min</span>
+                </div>
+                <div class="time-box">
+                    <span class="time-val" id="seconds">00</span>
+                    <span class="time-label">Sec</span>
+                </div>
+            </div>
+
+            <div id="final-message" class="ny-message">Happy New Year, Eliana!</div>
+            <p id="subtitle-text" style="font-size: 0.9rem; margin-top:15px; color:#aaa;">Counting down to our fresh start...</p>
+            
+            <!-- Button to open diary (Initially hidden via JS) -->
+            <button id="open-letter-btn" class="action-btn" style="display:none; margin-top:30px;" onclick="openLetter()">Read My Note</button>
+        </div>
+
+        <!-- Part 3: Diary / Letter -->
+        <div id="letter-view">
+            <div class="diary-date">January 1st, 2026</div>
+            <div class="diary-text">
+                <p style="margin:0;">Dear Eliana,</p>
+                <p style="margin:0;">As the fireworks light up the sky and the world resets for 2026, I wanted to take a quiet moment to write this to you.</p>
+                <p style="margin:0;">I know I'm not perfect, and I've made mistakes like falling asleep when I should have been there. But my appreciation for you is constant. You are such a wonderful friend, and I value our bond more than I often say.</p>
+                <p style="margin:0;">Here is to a fresh page for us—a year of better communication, more laughter, and zero regrets.</p>
+            </div>
+            <div class="signature">
+                Always yours,<br>
+                Vansh ✨
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const apologyText = "I am sorry to fall asleep last night without informing you.. I will not do it again i'm sorry";
+        
+        // *** REAL MODE (Set for Midnight, Jan 1, 2026) ***
+        const targetDate = new Date('January 1, 2026 00:00:00').getTime();
+
+        // --- TYPEWRITER EFFECT ---
+        const textSpan = document.getElementById('typed-text');
+        let charIndex = 0;
+
+        function typeWriter() {
+            if (charIndex < apologyText.length) {
+                textSpan.innerHTML += apologyText.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+
+        // Start typing after a short delay
+        setTimeout(typeWriter, 1000);
+
+        // --- TRANSITION LOGIC ---
+        let isCelebrating = false;
+        let countdownInterval;
+
+        function startNewYear() {
+            const apologySection = document.getElementById('apology-section');
+            const nySection = document.getElementById('ny-section');
+
+            // 1. Hide Apology
+            apologySection.style.opacity = '0';
+            apologySection.style.transform = 'translateY(-20px)';
+            apologySection.style.transition = '0.5s ease';
+            
+            setTimeout(() => {
+                apologySection.style.display = 'none';
+                
+                // 2. Show New Year Section
+                nySection.style.display = 'block';
+                // Trigger reflow
+                void nySection.offsetWidth; 
+                nySection.style.opacity = '1';
+                nySection.style.transform = 'scale(1)';
+
+                // Start the countdown logic
+                startCountdown();
+
+            }, 500);
+        }
+
+        function startCountdown() {
+            // Run immediately then interval
+            updateTimer();
+            countdownInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                // Time's up!
+                clearInterval(countdownInterval);
+                document.getElementById('countdown-container').style.display = 'none';
+                document.getElementById('final-message').style.display = 'block';
+                document.getElementById('subtitle-text').style.display = 'none';
+                
+                // Show the "Read Note" button
+                const letterBtn = document.getElementById('open-letter-btn');
+                letterBtn.style.display = 'inline-block';
+                letterBtn.style.animation = 'fadeUp 1s forwards';
+                
+                // Trigger Fireworks!
+                if (!isCelebrating) {
+                    isCelebrating = true;
+                    // Blast initial fireworks
+                    for(let i=0; i<15; i++) {
+                        setTimeout(() => createFirework(Math.random()*canvas.width, Math.random()*canvas.height/2), i*200);
+                    }
+                }
+            } else {
+                // Calculation
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('hours').innerText = hours < 10 ? '0'+hours : hours;
+                document.getElementById('minutes').innerText = minutes < 10 ? '0'+minutes : minutes;
+                document.getElementById('seconds').innerText = seconds < 10 ? '0'+seconds : seconds;
+            }
+        }
+
+        function openLetter() {
+            const nySection = document.getElementById('ny-section');
+            const letterView = document.getElementById('letter-view');
+
+            // Fade out New Year Title
+            nySection.style.opacity = '0';
+            nySection.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                nySection.style.display = 'none';
+                letterView.style.display = 'block';
+            }, 500);
+        }
+
+        // --- CANVAS ANIMATION (Stars & Fireworks) ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+        let stars = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initStars();
+        }
+        window.addEventListener('resize', resize);
+
+        // --- STARS (Peaceful Background) ---
+        class Star {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2;
+                this.blinkSpeed = Math.random() * 0.05 + 0.01;
+                this.alpha = Math.random();
+                this.direction = 1;
+            }
+            update() {
+                this.alpha += this.blinkSpeed * this.direction;
+                if (this.alpha >= 1 || this.alpha <= 0) this.direction *= -1;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initStars() {
+            stars = [];
+            for(let i=0; i<150; i++) stars.push(new Star());
+        }
+
+        // --- FIREWORKS (Celebration) ---
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 4 + 1;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.015 + 0.005;
+                this.gravity = 0.05;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+                this.alpha -= this.decay;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createFirework(x, y) {
+            const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#FFFFFF', '#FF00FF'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            for (let i = 0; i < 40; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            // Trail effect
+            ctx.fillStyle = isCelebrating ? 'rgba(0, 0, 0, 0.2)' : 'rgba(5, 5, 5, 0.5)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw Stars
+            stars.forEach(star => {
+                star.update();
+                star.draw();
+            });
+
+            // Draw Fireworks/Particles
+            if (isCelebrating) {
+                // Random fireworks chance
+                if (Math.random() < 0.05) {
+                    createFirework(Math.random() * width, Math.random() * height / 2 + height/4);
+                }
+            }
+
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                if (p.alpha <= 0) particles.splice(index, 1);
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Init
+        resize();
+        animate();
+
+    </script>
+</body>
+</html>
